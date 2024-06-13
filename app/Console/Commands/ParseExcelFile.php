@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\ProcessExcelChunk;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Redis;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ParseExcelFile extends Command
@@ -27,6 +28,9 @@ class ParseExcelFile extends Command
      */
     public function handle()
     {
+        // Очистка предыдущих значений в Redis
+        Redis::flushdb();
+
         $filePath = $this->argument('file');
         $spreadsheet = IOFactory::load($filePath);
         $sheet = $spreadsheet->getActiveSheet();

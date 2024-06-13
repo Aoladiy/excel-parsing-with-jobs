@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Redis;
 
 class ProcessExcelChunk implements ShouldQueue
 {
@@ -35,6 +36,8 @@ class ProcessExcelChunk implements ShouldQueue
      */
     public function handle(): void
     {
+        $processedRows = 0;
+
         foreach ($this->chunk as $index => $row) {
             // Пропустим заголовок
             if ($index === 0 && $this->startLineNumber === 1) continue;
@@ -60,6 +63,8 @@ class ProcessExcelChunk implements ShouldQueue
 
                 Storage::append($this->filePath, $logMessage);
                 continue;
+            } else {
+                $processedRows++;
             }
 
             Row::query()->firstOrCreate(
@@ -70,5 +75,9 @@ class ProcessExcelChunk implements ShouldQueue
                 ]
             );
         }
+
+        // Сохраняем прогресс выполнения в Redis
+        $chunkIndex = ($this->startLineNumber - 1) / 1000; // Индекс текущего чанка
+        Redis::set("chunk_progress:$chunkIndex", $processedRows);
     }
 }
