@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\Row;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,19 +10,24 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class ProcessExcelChunk implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $chunk;
+    protected $startLineNumber;
+    protected $filePath;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($chunk)
+    public function __construct($chunk, $startLineNumber)
     {
         $this->chunk = $chunk;
+        $this->startLineNumber = $startLineNumber;
+        $this->filePath = 'result.txt';
     }
 
     /**
@@ -31,9 +35,11 @@ class ProcessExcelChunk implements ShouldQueue
      */
     public function handle(): void
     {
-        foreach ($this->chunk as $row) {
+        foreach ($this->chunk as $index => $row) {
             // Пропустим заголовок
-            if ($row === reset($this->chunk)) continue;
+            if ($index === 0 && $this->startLineNumber === 1) continue;
+
+            $lineNumber = $this->startLineNumber + $index; // Номер строки в оригинальном файле
 
             $data = [
                 'id' => $row[0],
@@ -41,7 +47,6 @@ class ProcessExcelChunk implements ShouldQueue
                 'date' => $row[2],
             ];
 
-            // Валидация данных
             $validator = Validator::make($data, [
                 'id' => 'required|unique:rows,id|integer|gt:0',
                 'name' => 'required|string|regex:/^[a-zA-Z ]+$/',
@@ -49,17 +54,21 @@ class ProcessExcelChunk implements ShouldQueue
             ]);
 
             if ($validator->fails()) {
-                // Логируем или пропускаем неправильные данные
-                Log::error('Validation failed for row', ['row' => $data, 'errors' => $validator->errors()]);
+                $errors = $validator->errors()->all();
+                $errorString = implode(', ', $errors);
+                $logMessage = "$lineNumber - $errorString";
+
+                Storage::append($this->filePath, $logMessage);
                 continue;
             }
-            // Сохранение данных в базу данных
+
             Row::query()->firstOrCreate(
                 ['id' => $data['id']],
                 [
                     'name' => $data['name'],
                     'date' => $data['date'],
-                ]);
+                ]
+            );
         }
     }
 }

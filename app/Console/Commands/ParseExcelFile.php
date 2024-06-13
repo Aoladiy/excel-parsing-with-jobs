@@ -34,8 +34,9 @@ class ParseExcelFile extends Command
         $rows = $sheet->toArray();
         $chunks = array_chunk($rows, 1000);
 
-        foreach ($chunks as $chunk) {
-            ProcessExcelChunk::dispatch($chunk);
+        foreach ($chunks as $chunkIndex => $chunk) {
+            $startLineNumber = $chunkIndex * 1000 + 1; // Номер первой строки в текущем куске
+            ProcessExcelChunk::dispatch($chunk, $startLineNumber);
         }
 
         $this->info('Excel file parsing started!');
