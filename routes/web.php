@@ -1,8 +1,6 @@
 <?php
 
-use App\Http\Middleware\authBasic;
+use App\Http\Controllers\RowController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-})->middleware([authBasic::class]);
+Route::get('/rows', [RowController::class, 'getRows']);
