@@ -1,8 +1,8 @@
 <h1>How to run this laravel project</h1>
 <hr>
+<p>create .env file and copy to this file everything from .env.example</p>
 <p>in project folder run following commands:</p>
 <ol>
-    <li>create .env file and copy to this file everything from .env.example</li>
     <li>composer install</li>
     <li>sail up -d</li>
     <li>sail npm run build</li>
@@ -17,3 +17,8 @@
     <li>/upload</li>
 </ol>
 <p>to get access to the /upload route login as 1@1 with password 1</p>
+<p>to see progress in redis run following commands:</p>
+<ol>
+    <li>sail artisan tinker</li>
+    <li>Illuminate\Support\Facades\Redis::get('chunk_progress:INSERT_HERE_CHUNK_INDEX_YOU_INTERESTED_IN')</li>
+</ol>
