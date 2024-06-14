@@ -2,6 +2,7 @@
 <hr>
 <p>in project folder run following commands:</p>
 <ol>
+    <li>create .env file and copy to this file everything from .env.example</li>
     <li>composer install</li>
     <li>sail up -d</li>
     <li>sail npm run build</li>
