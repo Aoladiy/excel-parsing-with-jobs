@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Events\RowCreated;
 use App\Models\Row;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -67,13 +68,14 @@ class ProcessExcelChunk implements ShouldQueue
                 $processedRows++;
             }
 
-            Row::query()->firstOrCreate(
-                ['id' => $data['id']],
+            $row = Row::query()->create(
                 [
+                    'id' => $data['id'],
                     'name' => $data['name'],
                     'date' => $data['date'],
                 ]
             );
+            broadcast(new RowCreated($row))->toOthers();
         }
 
         // Сохраняем прогресс выполнения в Redis
