@@ -7,6 +7,8 @@
     <li>sail npm run build</li>
     <li>sail artisan migrate:fresh --seed</li>
     <li>sail artisan queue:work</li>
+    <li>sail artisan queue:work --queue=high</li>
+    <li>sail artisan reverb:start</li>
 </ol>
 <p>project has the following routes:</p>
 <ol>
